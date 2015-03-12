@@ -84,13 +84,10 @@ DemoApp::DemoApp()
     m_pConvertedSourceBitmap(nullptr),
     m_pIWICFactory(nullptr),
     m_pD2DFactory(nullptr),
-    m_pRT(nullptr),
-	m_fZoomRate(1),
-	m_hWnd(0),
-	m_fRotate(0),
-	m_fOffX(0),
-	m_fOffY(0)
+    m_pRT(nullptr),	
+	m_hWnd(0)	
 {
+	m_matTrans = D2D1::Matrix3x2F::Identity();
 }
 
 /******************************************************************
@@ -161,8 +158,8 @@ HRESULT DemoApp::Initialize(HINSTANCE hInstance)
             WS_OVERLAPPEDWINDOW | WS_VISIBLE,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
-            640,
-            480,
+			CW_USEDEFAULT,
+			CW_USEDEFAULT,
             nullptr,
             nullptr,
             hInstance,
@@ -414,6 +411,34 @@ LRESULT DemoApp::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			OnKeyDown(static_cast<SHORT>(wParam));
 			break;
 		}
+		case WM_LBUTTONDOWN:
+		{
+			m_bPan = true;
+			SetCapture(m_hWnd);
+			// fwKeys = wParam;
+			m_fLastPosX = LOWORD(lParam);
+			m_fLastPosY = HIWORD(lParam);
+			break;
+		}
+		case WM_LBUTTONUP:
+		{
+			m_bPan = false;
+			ReleaseCapture();
+			break;
+		}
+		case WM_MOUSEMOVE:
+		{
+			if (m_bPan)
+			{
+				FLOAT fDeltaX = LOWORD(lParam) - m_fLastPosX,
+					fDeltaY = HIWORD(lParam) - m_fLastPosY;
+				m_matTrans = m_matTrans * D2D1::Matrix3x2F::Translation(fDeltaX, fDeltaY);
+				InvalidateRect(m_hWnd, NULL, FALSE);
+				m_fLastPosX = LOWORD(lParam);
+				m_fLastPosY = HIWORD(lParam);
+			}
+			break;
+		}
 		case WM_MOUSEWHEEL:
 		{
 			OnMouseWheel(wParam);
@@ -446,21 +471,10 @@ LRESULT DemoApp::OnPaint(HWND hWnd)
 
         if (SUCCEEDED(hr) && !(m_pRT->CheckWindowState() & D2D1_WINDOW_STATE_OCCLUDED))
         {
-            m_pRT->BeginDraw();
 			auto rtSize = m_pRT->GetSize();
-			RECT rcSize;
-			GetClientRect(hWnd, &rcSize);
-			rtSize.width = rcSize.right - rcSize.left;
-			rtSize.height = rcSize.bottom - rcSize.top;
-			m_pRT->SetTransform(
-				D2D1::Matrix3x2F::Translation(m_fOffX, m_fOffY) *
-				D2D1::Matrix3x2F::Scale((float)m_fZoomRate, (float)m_fZoomRate,
-					D2D1::Point2F(rtSize.width / 2, rtSize.height / 2)
-					) *
-				D2D1::Matrix3x2F::Rotation((float)m_fRotate,
-					D2D1::Point2F(rtSize.width / 2, rtSize.height / 2)
-					)
-				);
+			m_pRT->BeginDraw();
+			
+			m_pRT->SetTransform(m_matTrans);
 			
             // Clear the background
             m_pRT->Clear(D2D1::ColorF(D2D1::ColorF::Black));
@@ -507,25 +521,29 @@ LRESULT DemoApp::OnPaint(HWND hWnd)
 void DemoApp::OnKeyDown(SHORT vkey)
 {
 	const float fDeleta = 50;
+	
+	FLOAT fDeltaX = 0;
+	FLOAT fDeltaY = 0;
+
 	switch (vkey)
 	{
 	case VK_LEFT:
-		m_fOffX -= fDeleta;
+		fDeltaX += fDeleta;
 		break;
 	case VK_RIGHT:
-		m_fOffX += fDeleta;
+		fDeltaX -= fDeleta;
 		break;
 	case VK_UP:
-		m_fOffY -= fDeleta;
+		fDeltaY += fDeleta;
 		break;
 	case VK_DOWN:
-		m_fOffY += fDeleta;
+		fDeltaY -= fDeleta;
 		break;
 	case VK_BACK:
-		m_fOffX = m_fOffY = m_fRotate = 0;
-		m_fZoomRate = 1;
+		m_matTrans = D2D1::Matrix3x2F::Identity();
 		break;
 	}
+	m_matTrans = m_matTrans * D2D1::Matrix3x2F::Translation(fDeltaX, fDeltaY);
 	InvalidateRect(m_hWnd, NULL, FALSE);
 }
 
@@ -533,13 +551,30 @@ void DemoApp::OnMouseWheel(WPARAM wParam)
 {
 	WORD fwKeys = GET_KEYSTATE_WPARAM(wParam);
 	FLOAT zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-	if (fwKeys & MK_CONTROL)
+	D2D1_POINT_2F ptReal = GetCursorRealPos();
+	if (fwKeys & MK_CONTROL) // Rotate
 	{
-		m_fRotate += 30 * zDelta / WHEEL_DELTA;
+		FLOAT m_fRotate = 30 * zDelta / WHEEL_DELTA;
+		m_matTrans = m_matTrans * D2D1::Matrix3x2F::Rotation((float)m_fRotate, ptReal);
 	}
 	else
 	{
-		m_fZoomRate *= powf(2.0f, zDelta / WHEEL_DELTA);
-	}
+		FLOAT m_fZoomRate = powf(2.0f, zDelta / WHEEL_DELTA);
+		m_matTrans = m_matTrans * D2D1::Matrix3x2F::Scale(
+			(float)m_fZoomRate, (float)m_fZoomRate, ptReal);
+	}				
+
 	InvalidateRect(m_hWnd, NULL, FALSE);
+}
+
+D2D1_POINT_2F DemoApp::GetCursorRealPos()
+{
+	POINT ptCursor;
+	GetCursorPos(&ptCursor);
+	ScreenToClient(m_hWnd, &ptCursor);
+	return D2D1::Point2F(ptCursor.x, ptCursor.y);
+// 	D2D1::Matrix3x2F matTrans = m_matTrans;
+// 	matTrans.Invert();
+// 	return matTrans.TransformPoint(
+// 		D2D1::Point2F(ptCursor.x, ptCursor.y));	
 }

@@ -37,6 +37,7 @@ private:
 
     static LRESULT CALLBACK s_WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+	D2D1_POINT_2F GetCursorRealPos();
 private:
 	HWND					m_hWnd;
     HINSTANCE               m_hInst;
@@ -47,10 +48,9 @@ private:
     ID2D1Bitmap            *m_pD2DBitmap;
     IWICFormatConverter    *m_pConvertedSourceBitmap;
 
-	FLOAT m_fZoomRate;
-	FLOAT m_fRotate;
-	FLOAT m_fOffX;
-	FLOAT m_fOffY;
+	D2D1::Matrix3x2F m_matTrans;
+	bool m_bPan;
+	FLOAT m_fLastPosX, m_fLastPosY;
 };
 
 
