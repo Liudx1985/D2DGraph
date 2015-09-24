@@ -51,7 +51,7 @@
     <ClInclude Include="ExportAPI.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptInputDlg.h">
+    <ClInclude Include="ScriptFormView.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -80,7 +80,7 @@
     <ClCompile Include="ExportAPI.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptInputDlg.cpp">
+    <ClCompile Include="ScriptFormView.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -4,6 +4,7 @@
 #include <fstream>
 #include "DrawGraph.h"
 #include "DrawGraphDoc.h"
+#include "MainFrm.h"
 #include "DrawGraphView.h"
 
 BOOST_PYTHON_MODULE(direct2d) //generate a PyInit_direct2d function for init this module.
@@ -48,7 +49,8 @@ bool InitPyEnv()
 
 		object ignored = exec_file(strFileName.c_str(), global, global);
 		ignored = exec("redirectStdIO()", global, global);
-		ignored = exec("print('hello from c++');", global, global);
+		ignored = exec("print('Python embed in c++(Powered by liudx@1985gmail.com)');",
+			global, global);
 
 		object fun_get = global["getStdIOContent"];
 		object t = fun_get();
@@ -111,10 +113,12 @@ bool EvalPyScript(std::string const &strScript)
 
 static CDrawGraphView *GetGrahpView()
 {
-	CFrameWndEx *pMain = (CFrameWndEx *)AfxGetMainWnd();
-	// View
-	CView *pView = (CView *)pMain->GetActiveView();
-	return dynamic_cast<CDrawGraphView *>(pView);
+	static CDrawGraphView *s_pView = NULL;
+	if (NULL == s_pView)
+	{
+		s_pView = theApp.GetGraphView();
+	}
+	return s_pView;
 }
 
 void ClearCanvas()

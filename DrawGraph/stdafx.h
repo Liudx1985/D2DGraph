@@ -37,7 +37,7 @@
 #include <utility>
 #include <vector>
 #include <string>
-
+#include <memory>
 #include <dwrite.h>
 #include <D2d1_1.h>
 #include <d2d1helper.h>

@@ -1,6 +1,7 @@
 #pragma once
 /////////////////////////////////////////////////////////////////////////////
 // COutputList ´°¿Ú
+#include "ScriptFormView.h"
 
 class COutputList : public CListBox
 {
@@ -36,7 +37,7 @@ protected:
 	CMFCTabCtrl	m_wndTabs;
 
 	COutputList m_wndOutputBuild;
-	CRichEditCtrl m_wndOutputDebug;
+	CScriptFormView *m_pwndOutputDebug;
 	COutputList m_wndOutputFind;
 
 protected:

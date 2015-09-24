@@ -12,7 +12,7 @@
 #include "DrawGraphDoc.h"
 #include "DrawGraphView.h"
 #include "ExportAPI.h"
-#include "ScriptInputDlg.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -188,12 +188,6 @@ afx_msg void CDrawGraphView::OnEditAddLine()
 // 		std::string strScript = "DrawCircle(100, 100, 100)";
 // 		::EvalPyScript(strScript);
 // 	}
-	CScriptInputDlg dlgScript(this);
-	if (dlgScript.DoModal() == IDOK)
-	{
-		std::string strScript = (LPCTSTR)dlgScript.m_strScript;
-		::EvalPyScript(strScript);
-	}
 }
 
 afx_msg void CDrawGraphView::OnEditClearCanvas()

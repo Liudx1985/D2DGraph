@@ -13,7 +13,7 @@
 // CDrawGraphApp:
 // 有关此类的实现，请参阅 DrawGraph.cpp
 //
-
+class CDrawGraphView;
 class CDrawGraphApp : public CWinAppEx
 {
 public:
@@ -29,6 +29,7 @@ public:
 // 实现
 	UINT  m_nAppLook;
 	BOOL  m_bHiColorIcons;
+	CDrawGraphView *GetGraphView();
 protected:
 	virtual void PreLoadState();
 	virtual void LoadCustomState();
@@ -38,6 +39,7 @@ protected:
 
 	ID2D1Factory*			g_pD2DFactory;	// Direct2D factory
 	IDWriteFactory*			g_pDWriteFactory; // DWRITE factory;
+	CSingleDocTemplate *m_pDocTemplate;
 
 
 	afx_msg void OnAppAbout();

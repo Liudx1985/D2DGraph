@@ -29,6 +29,7 @@ END_MESSAGE_MAP()
 
 CDrawGraphApp::CDrawGraphApp()
 {
+	m_pDocTemplate = NULL;
 	m_bHiColorIcons = TRUE;
 	g_pD2DFactory = NULL;	// Direct2D factory
 	g_pDWriteFactory = NULL; // DWRITE factory;
@@ -138,15 +139,14 @@ BOOL CDrawGraphApp::InitInstance()
 
 	// 注册应用程序的文档模板。  文档模板
 	// 将用作文档、框架窗口和视图之间的连接
-	CSingleDocTemplate* pDocTemplate;
-	pDocTemplate = new CSingleDocTemplate(
+	m_pDocTemplate = new CSingleDocTemplate(
 		IDR_MAINFRAME,
 		RUNTIME_CLASS(CDrawGraphDoc),
 		RUNTIME_CLASS(CMainFrame),       // 主 SDI 框架窗口
 		RUNTIME_CLASS(CDrawGraphView));
-	if (!pDocTemplate)
+	if (!m_pDocTemplate)
 		return FALSE;
-	AddDocTemplate(pDocTemplate);
+	AddDocTemplate(m_pDocTemplate);
 
 
 	// 分析标准 shell 命令、DDE、打开文件操作的命令行
@@ -182,6 +182,30 @@ int CDrawGraphApp::ExitInstance()
 	SAFE_RELEASE(g_pD2DFactory);
 	UnInitPyEnv();
 	return CWinAppEx::ExitInstance();
+}
+
+CDrawGraphView *CDrawGraphApp::GetGraphView()
+{
+	if (m_pDocTemplate)
+	{
+		POSITION posDoc = m_pDocTemplate->GetFirstDocPosition();
+		while (posDoc)
+		{
+			CDocument *pDoc = m_pDocTemplate->GetNextDoc(posDoc);
+			if (pDoc->IsKindOf(RUNTIME_CLASS(CDrawGraphDoc)))
+			{
+				POSITION posView = pDoc->GetFirstViewPosition();
+				while (posView)
+				{
+					CView *pView = pDoc->GetNextView(posView);
+					if (pView && pView->IsKindOf(RUNTIME_CLASS(CDrawGraphView)))
+					{
+						return (CDrawGraphView*)(pView);
+					}
+				}
+			}
+		}
+	}
 }
 
 // CDrawGraphApp 消息处理程序

@@ -46,28 +46,29 @@ int COutputWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	const DWORD dwStyle = LBS_NOINTEGRALHEIGHT | WS_CHILD | WS_VISIBLE 
 		| WS_HSCROLL | WS_VSCROLL;
 
+	m_pwndOutputDebug = ((CScriptFormView*)(RUNTIME_CLASS(CScriptFormView)->CreateObject()));
 	if (!m_wndOutputBuild.Create(dwStyle, rectDummy, &m_wndTabs, 2) ||
-		!m_wndOutputDebug.Create(dwStyle | ES_MULTILINE | ES_AUTOVSCROLL & (~ES_NOHIDESEL)
-			, rectDummy, &m_wndTabs, 3) ||
+		!m_pwndOutputDebug->Create(NULL, NULL, dwStyle, rectDummy, &m_wndTabs, 3, NULL) ||
 		!m_wndOutputFind.Create(dwStyle, rectDummy, &m_wndTabs, 4))
 	{
 		TRACE0("未能创建输出窗口\n");
 		return -1;      // 未能创建
 	}
-	m_wndOutputDebug.SetReadOnly();
-	m_wndOutputDebug.SetTextMode(0);
+
 	UpdateFonts();
 
 	CString strTabName;
 	BOOL bNameValid;
 
-	// 将列表窗口附加到选项卡: 
-	bNameValid = strTabName.LoadString(IDS_BUILD_TAB);
-	ASSERT(bNameValid);
-	m_wndTabs.AddTab(&m_wndOutputBuild, strTabName, (UINT)0);
+	// 将列表窗口附加到选项卡:
 	bNameValid = strTabName.LoadString(IDS_DEBUG_TAB);
 	ASSERT(bNameValid);
-	m_wndTabs.AddTab(&m_wndOutputDebug, strTabName, (UINT)1);
+	m_wndTabs.AddTab(m_pwndOutputDebug, strTabName, (UINT)0);
+
+	bNameValid = strTabName.LoadString(IDS_BUILD_TAB);
+	ASSERT(bNameValid);
+	m_wndTabs.AddTab(&m_wndOutputBuild, strTabName, (UINT)1);
+	
 	bNameValid = strTabName.LoadString(IDS_FIND_TAB);
 	ASSERT(bNameValid);
 	m_wndTabs.AddTab(&m_wndOutputFind, strTabName, (UINT)2);
@@ -102,76 +103,16 @@ void COutputWnd::AdjustHorzScroll(CListBox& wndListBox)
 	dc.SelectObject(pOldFont);
 }
 
-int GetNumVisibleLines(CRichEditCtrl* pCtrl)
-{
-	CRect rect;
-	long nFirstChar, nLastChar;
-	long nFirstLine, nLastLine;
-
-	// Get client rect of rich edit control
-	pCtrl->GetClientRect(rect);
-
-	// Get character index close to upper left corner
-	nFirstChar = pCtrl->CharFromPos(CPoint(0, 0));
-
-	// Get character index close to lower right corner
-	nLastChar = pCtrl->CharFromPos(CPoint(rect.right, rect.bottom));
-	if (nLastChar < 0)
-	{
-		nLastChar = pCtrl->GetTextLength();
-	}
-
-	// Convert to lines
-	nFirstLine = pCtrl->LineFromChar(nFirstChar);
-	nLastLine = pCtrl->LineFromChar(nLastChar);
-
-	return (nLastLine - nFirstLine);
-}
-
-void COutputWnd::AppendDebugMessage(LPCTSTR str, COLORREF color)
-{
-	long nVisible = 0;
-	long nInsertionPoint = 0;
-	CHARFORMAT cf;
-
-	// Initialize character format structure
-	cf.cbSize = sizeof(CHARFORMAT);
-	cf.dwMask = CFM_COLOR;
-	cf.dwEffects = 0; // To disable CFE_AUTOCOLOR
-
-	cf.crTextColor = color;
-
-	// Set insertion point to end of text
-	nInsertionPoint = m_wndOutputDebug.GetWindowTextLength();
-	m_wndOutputDebug.SetSel(nInsertionPoint, -1);
-
-	// Set the character format
-	m_wndOutputDebug.SetSelectionCharFormat(cf);
-
-	// Replace selection. Because we have nothing 
-	// selected, this will simply insert
-	// the string at the current caret position.
-	m_wndOutputDebug.ReplaceSel(str);
-
-	// Get number of currently visible lines or maximum number of visible lines
-	// (We must call GetNumVisibleLines() before the first call to LineScroll()!)
-	nVisible = GetNumVisibleLines(&m_wndOutputDebug);
-
-	// Now this is the fix of CRichEditCtrl's abnormal behaviour when used
-	// in an application not based on dialogs. Checking the focus prevents
-	// us from scrolling when the CRichEditCtrl does so automatically,
-	// even though ES_AUTOxSCROLL style is NOT set.
-	if (&m_wndOutputDebug != m_wndOutputDebug.GetFocus())
-	{
-		m_wndOutputDebug.LineScroll(INT_MAX);
-		m_wndOutputDebug.LineScroll(1 - nVisible);
-	}
-}
 void COutputWnd::UpdateFonts()
 {
 	m_wndOutputBuild.SetFont(&afxGlobalData.fontRegular);
-	m_wndOutputDebug.SetFont(&afxGlobalData.fontRegular);
+	m_pwndOutputDebug->SetFont(&afxGlobalData.fontRegular);
 	m_wndOutputFind.SetFont(&afxGlobalData.fontRegular);
+}
+
+void COutputWnd::AppendDebugMessage(LPCTSTR lpszMsg, COLORREF color)
+{
+	m_pwndOutputDebug->AppendDebugMessage(lpszMsg, color);
 }
 
 /////////////////////////////////////////////////////////////////////////////
