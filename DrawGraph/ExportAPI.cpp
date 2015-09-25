@@ -94,6 +94,7 @@ bool EvalPyScript(std::string const &strScript)
 
 	object _main_ = import("__main__");
 	object global(_main_.attr("__dict__"));
+	clock_t tBegin = clock();
 	try
 	{		
 		object ignored = exec(strScript.c_str(), global, global);
@@ -104,6 +105,11 @@ bool EvalPyScript(std::string const &strScript)
 		PyErr_Print();
 		//std::cout << e << std::endl;	
 	}
+	clock_t tEnd = clock();
+	TCHAR arBuf[64];
+	sprintf_s(arBuf, 64, "cost time %d ms.\n", (tEnd - tBegin));
+	theApp.AddDebugLog(arBuf, 0xff0000);
+
 	object fun_get = global["getStdIOContent"];
 	object t = fun_get();
 	theApp.AddDebugLog(extract<char *>(t), 0xff);
@@ -125,6 +131,7 @@ bool EvalPyScriptFile(std::string const &strFile)
 
 	object _main_ = import("__main__");
 	object global(_main_.attr("__dict__"));
+	clock_t tBegin = clock();
 	try
 	{
 		object ignored = exec_file(strFile.c_str(), global, global);
@@ -138,6 +145,11 @@ bool EvalPyScriptFile(std::string const &strFile)
 	object fun_get = global["getStdIOContent"];
 	object t = fun_get();
 	theApp.AddDebugLog(extract<char *>(t), 0xff);
+
+	clock_t tEnd = clock();
+	TCHAR arBuf[64];
+	sprintf_s(arBuf, 64, "cost time %d ms.\n", (tEnd - tBegin));
+	theApp.AddDebugLog(arBuf, 0xff0000);
 	return bResult;
 }
 
