@@ -69,6 +69,9 @@ afx_msg void CDrawGraphView::OnSize(UINT nType, int cx, int cy)
 
 void CDrawGraphView::OnPaint()
 {
+	int iHozOffset = GetScrollPos(SB_HORZ);
+	int iVertOffset = GetScrollPos(SB_VERT);
+
  	CPaintDC dc(this);
 
 	// TODO: 在此处为本机数据添加绘制代码
@@ -103,28 +106,43 @@ void CDrawGraphView::OnPaint()
 	D2D1_SIZE_F szTarget = m_pRenderTarget->GetSize();
 	// Draw Rectangle
 	m_pRenderTarget->DrawRectangle(
-		D2D1::RectF(10, 10, szTarget.width - 10, szTarget.height - 10),
+		D2D1::RectF(10 - iHozOffset, 10 - iVertOffset,
+			szTarget.width - 10 - iHozOffset, szTarget.height - 10 - iVertOffset),
 		g_pBrush
 		);
 
 	for (auto line: m_vecLines)
 	{
-		D2D1_POINT_2F &ptStart = line.first;
+		D2D1_POINT_2F ptStart = line.first;
 		D2D1_VECTOR_2F &vecDir = line.second;
 		// draw line
 		D2D1_POINT_2F ptEnd = ptStart;
 		ptEnd.x += vecDir.x;
 		ptEnd.y += vecDir.y;
+		// off set the point.
+		ptStart.x -= iHozOffset;
+		ptStart.y -= iVertOffset;
+
+		ptEnd.x -= iHozOffset;
+		ptEnd.y -= iVertOffset;
+
+
 		m_pRenderTarget->DrawLine(ptStart, ptEnd, g_pBrush);
 	}
 
 	for (auto rc : m_vecRects)
 	{
+		rc.left -= iHozOffset;
+		rc.top  -= iVertOffset;
+		rc.right -= iHozOffset;
+		rc.bottom -= iVertOffset;
 		m_pRenderTarget->DrawRectangle(rc, g_pBrush);
 	}
 
 	for (auto e : m_vecEllipses)
 	{
+		e.point.x -= iHozOffset;
+		e.point.y -= iVertOffset;
 		m_pRenderTarget->DrawEllipse(e, g_pBrush);
 	}
 
