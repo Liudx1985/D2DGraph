@@ -104,13 +104,7 @@ void CDrawGraphView::OnPaint()
 
 
 	D2D1_SIZE_F szTarget = m_pRenderTarget->GetSize();
-	// Draw Rectangle
-	m_pRenderTarget->DrawRectangle(
-		D2D1::RectF(10 - iHozOffset, 10 - iVertOffset,
-			szTarget.width - 10 - iHozOffset, szTarget.height - 10 - iVertOffset),
-		g_pBrush
-		);
-
+	
 	for (auto line: m_vecLines)
 	{
 		D2D1_POINT_2F ptStart = line.first;
