@@ -177,17 +177,12 @@ CDrawGraphDoc* CDrawGraphView::GetDocument() const // 非调试版本是内联的
 // following are test code for script entry.
 afx_msg void CDrawGraphView::OnEditAddLine()
 {
-	// call python script. notice the tab symbols
-// 	{
-// 		std::string strScript = "DrawLine(10, 10, 500, 500)";
-// 		::EvalPyScript(strScript);
-// 	}
-// 	std::string strScript = "DrawRectangle(50, 50, 100, 100)";
-// 	::EvalPyScript(strScript);
-// 	{
-// 		std::string strScript = "DrawCircle(100, 100, 100)";
-// 		::EvalPyScript(strScript);
-// 	}
+	CFileDialog dlgOpen(TRUE, _T("*py"), NULL, OFN_FILEMUSTEXIST | OFN_EXPLORER,
+		_T("Python Script (*.py)|*.py||"), this);
+	if (dlgOpen.DoModal() == IDOK)
+	{
+		::EvalPyScriptFile((LPCTSTR)dlgOpen.GetPathName());
+	}
 }
 
 afx_msg void CDrawGraphView::OnEditClearCanvas()

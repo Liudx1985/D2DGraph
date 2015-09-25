@@ -110,6 +110,36 @@ bool EvalPyScript(std::string const &strScript)
 	return bResult;
 }
 
+bool EvalPyScriptFile(std::string const &strFile)
+
+{
+	bool bResult = false;
+	if (strFile.empty())
+	{
+		return bResult;
+	}
+	CString strMsg = "[exec file]";
+	strMsg += strFile.c_str();
+	strMsg += "\n";
+	theApp.AddDebugLog(LPCTSTR(strMsg), 0xFF00);
+
+	object _main_ = import("__main__");
+	object global(_main_.attr("__dict__"));
+	try
+	{
+		object ignored = exec_file(strFile.c_str(), global, global);
+		bResult = true;
+	}
+	catch (error_already_set &e)
+	{
+		PyErr_Print();
+		//std::cout << e << std::endl;	
+	}
+	object fun_get = global["getStdIOContent"];
+	object t = fun_get();
+	theApp.AddDebugLog(extract<char *>(t), 0xff);
+	return bResult;
+}
 
 static CDrawGraphView *GetGrahpView()
 {

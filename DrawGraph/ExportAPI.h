@@ -27,6 +27,7 @@ extern "C"
 	void UnInitPyEnv();
 	// Eval script.
 	bool EvalPyScript(std::string const &strScript);
+	bool EvalPyScriptFile(std::string const &strFile);
 	_declspec(dllexport) void ClearCanvas(void);
 	_declspec(dllexport) void SetBrushColor(int iColor);
 
