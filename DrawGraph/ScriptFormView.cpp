@@ -141,12 +141,10 @@ afx_msg void CScriptFormView::OnSize(UINT nType, int cx, int cy)
 	if (m_edtInput.GetSafeHwnd())
 	{
 		CRect rcEdt;
-		m_edtInput.GetClientRect(&rcEdt);
-		int iHei = rcEdt.Height();
 		rcEdt.left = rcWnd.left;
 		rcEdt.right = rcWnd.right;
 		rcEdt.bottom = rcWnd.bottom;
-		rcEdt.top = rcEdt.bottom - iHei;
+		rcEdt.top = rcEdt.bottom - 28;
 		m_edtInput.MoveWindow(&rcEdt);
 		rcWnd.bottom = rcEdt.top - 4;
 	}
